@@ -1,7 +1,7 @@
 from tkinter import Tk, Canvas, Button, GROOVE, Frame, RIGHT
 
 # from PIL import Image, ImageTk
-from renju.rule.const import BOARD_COLS, BOARD_ROWS
+from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK
 
 MARGIN = 10
 GRID_SIZE = 40
@@ -11,23 +11,49 @@ assert BOARD_COLS == BOARD_ROWS
 LINE_LENGTH = (BOARD_COLS - 1) * GRID_SIZE + LINE_WIDTH
 BOARD_SIZE = LINE_LENGTH + MARGIN * 2
 
+DOT_RADIUS = 3
+# fixme: I have to put a offset, otherwise the board is not in the center of canvas.
+CANVAS_OFFSET = 3
+
 
 class Board(object):
     def __init__(self, window):
-        self.canvas = Canvas(window.frame, width=BOARD_SIZE, height=BOARD_SIZE, bg='#ddaa22')
+        self.canvas = Canvas(window.frame, width=BOARD_SIZE, height=BOARD_SIZE, bg='#ddaa22', bd=0)
         self.canvas.pack()
 
         self._draw_board()
 
     def _draw_board(self):
         c = self.canvas
-        top = left = MARGIN
-        bottom, right = top + LINE_LENGTH, left
-        # rows
+        top = left = MARGIN + CANVAS_OFFSET
+        bottom, right = top + LINE_LENGTH, left + LINE_LENGTH
+
+        # horizontal lines
         y = top
         for row in range(BOARD_ROWS):
             c.create_line(left, y, right, y)
             y += GRID_SIZE
+
+        # vertical lines
+        x = left
+        for col in range(BOARD_COLS):
+            c.create_line(x, top, x, bottom)
+            x += GRID_SIZE
+
+        # dots
+        dot_rcs = (
+            (BOARD_ROWS // 2, BOARD_COLS // 2),  # center
+            (3, 3),
+            (3, BOARD_COLS - 4),
+            (BOARD_ROWS - 4, 3),
+            (BOARD_ROWS - 4, BOARD_COLS - 4)
+        )
+        for row, col in dot_rcs:
+            x, y = self.rc2xy(row, col)
+            c.create_oval((x - DOT_RADIUS, y - DOT_RADIUS, x + DOT_RADIUS, y + DOT_RADIUS), fill='black')
+
+    def rc2xy(self, row: int, col: int):
+        return CANVAS_OFFSET + MARGIN + col * GRID_SIZE, CANVAS_OFFSET + MARGIN + row * GRID_SIZE
 
         # # bg
         # image = Image.open("images/board.jpg")
