@@ -14,7 +14,7 @@ BOARD_SIZE = LINE_LENGTH + MARGIN * 2
 
 class Board(object):
     def __init__(self, window):
-        self.canvas = Canvas(window.frame, width=BOARD_SIZE, height=BOARD_SIZE, bg='#aaaa22')
+        self.canvas = Canvas(window.frame, width=BOARD_SIZE, height=BOARD_SIZE, bg='#ddaa22')
         self.canvas.pack()
 
         self._draw_board()
