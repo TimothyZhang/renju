@@ -78,7 +78,7 @@ class Board(Canvas):
         if row == -1 or col == -1:
             return
 
-        if not self.game.is_playing() or self.game.next_move_color != color:
+        if not self.game.renju.is_playing() or self.game.renju.next_move_color != color:
             return
 
         if not self.frame.is_human(color):

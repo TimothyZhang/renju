@@ -57,13 +57,14 @@ class Renju:
         self._finish_reason = FIVE
         self._started = True
 
-    def make_move(self, color: Color, row: int, col: int):
-        assert self._board[row][col] == NONE
-        assert self.next_move_color == color
-
-        self._board[row][col] = color
+    def make_move(self, row: int, col: int):
+        self._board[row][col] = self.next_move_color
         self._history.append((row, col))
         self._check_finished()
+
+    def unmake_move(self):
+        row, col = self._history.pop()
+        self._board[row][col] = NONE
 
     def resign(self, color: Color):
         self._winner = opponent_of(color)

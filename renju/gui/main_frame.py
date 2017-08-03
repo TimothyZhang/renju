@@ -1,11 +1,12 @@
 from enum import Enum
 from tkinter import Frame, LEFT, Button, RIGHT, messagebox, DISABLED, NORMAL
 
+from renju.ai.ais.max_min import MaxMinAI
 from renju.ai.ais.random import RandomAI
 from renju.ai.base import AIHelper
 from renju.game import Listener, Game
 from renju.gui.board import Board
-from renju.rule import Color, get_color_name, FinishReason, WHITE, NONE, opponent_of
+from renju.rule import Color, get_color_name, FinishReason, WHITE, NONE, opponent_of, BLACK
 
 
 class GameMode(Enum):
@@ -53,7 +54,7 @@ class MainFrame(Frame, Listener):
         self.ai_color = WHITE
 
         self.ai_helper = AIHelper(self.game)
-        self.ai_helper.reset(RandomAI(), WHITE)
+        self.ai_helper.reset(MaxMinAI, WHITE)
 
         self.game.start()
         self._set_start_button_stats(DISABLED)
@@ -68,8 +69,8 @@ class MainFrame(Frame, Listener):
         self.start_2p_button.config(state=state)
 
     def on_finished(self, winner: Color, reason: FinishReason):
-        messagebox.showinfo('Finished', 'Winner: %s\nReason: %s' % (get_color_name(winner), reason))
         self._set_start_button_stats(NORMAL)
+        messagebox.showinfo('Finished', 'Winner: %s\nReason: %s' % (get_color_name(winner), reason))
 
     def on_move_made(self, color: Color, row: int, col: int):
         self.board.add_stone(color, row, col)

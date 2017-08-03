@@ -13,10 +13,16 @@ class Listener:
         raise NotImplementedError()
 
 
-class Game(Renju):
+class Game:
     def __init__(self):
         super().__init__()
+
+        self._renju = Renju()
         self._listeners = []
+
+    @property
+    def renju(self):
+        return self._renju
 
     def add_listener(self, listener: Listener):
         assert listener not in self._listeners
@@ -26,23 +32,24 @@ class Game(Renju):
         self._listeners.remove(listener)
 
     def start(self):
-        super().start()
+        self._renju.start()
 
         for l in self._listeners:
             l.on_started()
 
     def make_move(self, color, row, col):
-        super().make_move(color, row, col)
+        assert color == self._renju.next_move_color
+        self._renju.make_move(row, col)
 
         for l in self._listeners:
             l.on_move_made(color, row, col)
 
-        if self.is_finished():
+        if self._renju.is_finished():
             for l in self._listeners:
-                l.on_finished(self.get_winner(), FinishReason.FIVE)
+                l.on_finished(self._renju.get_winner(), FinishReason.FIVE)
 
     def resign(self, color):
-        super().resign(color)
+        self._renju.resign(color)
 
         for l in self._listeners:
-            l.on_finished(self.get_winner(), FinishReason.RESIGN)
+            l.on_finished(self._renju.get_winner(), FinishReason.RESIGN)

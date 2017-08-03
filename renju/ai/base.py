@@ -1,9 +1,15 @@
+from typing import Type
+
 from renju.game import Listener, Game
-from renju.rule import Renju, Color, FinishReason, NONE, BLACK
+from renju.rule import Renju, Color, FinishReason, NONE, BLACK, BOARD_COLS, BOARD_ROWS
 
 
 class AI:
-    def get_move(self, renju: 'RenjuWrapper') -> (int, int):
+    def __init__(self, renju: 'RenjuWrapper', color: Color):
+        self.renju = renju
+        self.color = color
+
+    def get_move(self) -> (int, int):
         raise NotImplementedError()
 
 
@@ -14,6 +20,13 @@ class RenjuWrapper(Renju):
     @property
     def board(self):
         return self._board
+
+    def iter_empty_positions(self):
+        board = self.board
+        for row in range(BOARD_ROWS):
+            for col in range(BOARD_COLS):
+                if board[row][col] == NONE:
+                    yield row, col
 
 
 class AIHelper(Listener):
@@ -26,8 +39,8 @@ class AIHelper(Listener):
         """:type: AI"""
         self.color = NONE
 
-    def reset(self, ai: AI, color: Color):
-        self.ai = ai
+    def reset(self, ai_class: Type[AI], color: Color):
+        self.ai = ai_class(self.renju, color)
         self.color = color
 
     def on_finished(self, winner: Color, reason: FinishReason):
@@ -41,12 +54,12 @@ class AIHelper(Listener):
 
     def on_move_made(self, color: Color, row: int, col: int):
         # sync board state
-        self.renju.make_move(color, row, col)
+        self.renju.make_move(row, col)
 
         # My turn
         if not self.renju.is_finished() and self.renju.next_move_color == self.color:
             self._move()
 
     def _move(self):
-        row, col = self.ai.get_move(self.renju)
+        row, col = self.ai.get_move()
         self.game.make_move(self.color, row, col)
