@@ -36,6 +36,10 @@ class FinishReason(Enum):
 
 
 class Renju:
+    """
+    Holds core rule of Renju, used in both Game and AI.
+    """
+
     def __init__(self):
         self._board = [[NONE] * BOARD_ROWS for _ in range(BOARD_COLS)]
         """:type: List[List[Color]]"""

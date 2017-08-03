@@ -19,6 +19,7 @@ class Game(Renju):
         self._listeners = []
 
     def add_listener(self, listener: Listener):
+        assert listener not in self._listeners
         self._listeners.append(listener)
 
     def start(self):

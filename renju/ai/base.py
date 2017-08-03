@@ -3,11 +3,14 @@ from renju.rule import Renju, Color, FinishReason, NONE, BLACK
 
 
 class AI:
-    def get_move(self, renju: 'RenjuForAI') -> (int, int):
+    def get_move(self, renju: 'RenjuWrapper') -> (int, int):
         raise NotImplementedError()
 
 
-class RenjuForAI(Renju):
+class RenjuWrapper(Renju):
+    """
+    Expose some protected members for AI
+    """
     @property
     def board(self):
         return self._board
@@ -18,7 +21,7 @@ class AIHelper(Listener):
         self.game = game
         self.game.add_listener(self)
 
-        self.renju = RenjuForAI()
+        self.renju = RenjuWrapper()
         self.ai = ai
         self.color = NONE
 
@@ -35,9 +38,11 @@ class AIHelper(Listener):
             self._move()
 
     def on_move_made(self, color: Color, row: int, col: int):
+        # sync board state
         self.renju.make_move(color, row, col)
 
-        if color != self.color:
+        # My turn
+        if not self.renju.is_finished() and self.renju.next_move_color == self.color:
             self._move()
 
     def _move(self):
