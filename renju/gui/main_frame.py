@@ -1,5 +1,5 @@
 from enum import Enum
-from tkinter import Frame, LEFT, Button, RIGHT, GROOVE, messagebox, DISABLED, NORMAL
+from tkinter import Frame, LEFT, Button, RIGHT, messagebox, DISABLED, NORMAL
 
 from renju.ai.ais.random import RandomAI
 from renju.ai.base import AIHelper

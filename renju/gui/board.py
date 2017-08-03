@@ -1,7 +1,7 @@
 from tkinter import Canvas
 
 from renju.game import Game
-from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE, Color
+from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE
 from renju.gui import main_frame
 
 MARGIN = 10
