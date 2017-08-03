@@ -1,8 +1,14 @@
+from enum import Enum
 from tkinter import Frame, LEFT, Button, RIGHT, GROOVE, messagebox, DISABLED, NORMAL
 
 from renju.game import Listener, Game
 from renju.gui.board import Board
 from renju.rule import Color, get_color_name, FinishReason
+
+
+class GameMode(Enum):
+    ONE_PLAYER = 1
+    TWO_PLAYERS = 2
 
 
 class MainFrame(Frame, Listener):
@@ -13,26 +19,38 @@ class MainFrame(Frame, Listener):
         self.game.add_listener(self)
 
         self._init_gui()
+        self.game_mode = GameMode.ONE_PLAYER
 
     def _init_gui(self):
         self.board = Board(self)
         self.board.pack(side=LEFT)
 
-        self.start_button = Button(self, name='start', text='Start', fg='red', relief=GROOVE, command=self._start)
-        # btn.config(command=btn.flash)
-        self.start_button.pack(side=RIGHT)
-        self.start_button.flash()
+        self.start_1p_button = Button(self, name='1p', text='1P', fg='blue', command=self._start_one_player)
+        self.start_1p_button.pack(side=RIGHT)
 
-    def _start(self):
+        self.start_2p_button = Button(self, name='2p', text='2P', fg='red', command=self._start_two_player)
+        self.start_2p_button.pack(side=RIGHT)
+
+    def _start_one_player(self):
+        self.game_mode = GameMode.ONE_PLAYER
         self.game.start()
-        self.start_button.config(state=DISABLED)
+        self._set_start_button_stats(DISABLED)
+
+    def _start_two_player(self):
+        self.game_mode = GameMode.TWO_PLAYERS
+        self.game.start()
+        self._set_start_button_stats(DISABLED)
+
+    def _set_start_button_stats(self, state):
+        self.start_1p_button.config(state=state)
+        self.start_2p_button.config(state=state)
 
     def on_move_unmade(self):
         pass
 
     def on_finished(self, winner: Color, reason: FinishReason):
         messagebox.showinfo('Finished', 'Winner: %s\nReason: %s' % (get_color_name(winner), reason))
-        self.start_button.config(state=NORMAL)
+        self._set_start_button_stats(NORMAL)
 
     def on_move_made(self, color: Color, row: int, col: int):
         self.board.add_stone(color, row, col)

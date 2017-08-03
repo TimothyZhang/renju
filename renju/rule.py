@@ -54,7 +54,9 @@ class Renju:
         self._started = True
 
     def make_move(self, color: Color, row: int, col: int):
-        # assert self._board[row][col] == NONE
+        assert self._board[row][col] == NONE
+        assert self.next_move_color == color
+
         self._board[row][col] = color
         self._history.append((row, col))
         self._check_finished()

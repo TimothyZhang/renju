@@ -2,7 +2,7 @@ from tkinter import Canvas
 
 from renju.game import Game
 from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE
-
+from renju.gui import main_frame
 
 MARGIN = 10
 GRID_SIZE = 40
@@ -19,7 +19,7 @@ CANVAS_OFFSET = 3
 
 
 class Board(Canvas):
-    def __init__(self, frame):
+    def __init__(self, frame: 'main_frame.MainFrame'):
         super().__init__(frame, width=BOARD_SIZE, height=BOARD_SIZE, bg='#ddaa22', bd=0)
         self.frame = frame
 
@@ -67,18 +67,26 @@ class Board(Canvas):
         return self.create_oval((x - radius, y - radius, x + radius, y + radius), fill=color)
 
     def _on_button1_clicked(self, event):
-        if not self.game.is_playing() or self.game.next_move_color != BLACK:
-            return
-
-        row, col = self.xy2rc(event.x, event.y)
-        self.game.make_move(BLACK, row, col)
+        self._place_stone(BLACK, event.x, event.y)
 
     def _on_button3_clicked(self, event):
-        if not self.game.is_playing() or self.game.next_move_color != WHITE:
+        if self.frame.game_mode == main_frame.GameMode.ONE_PLAYER:
             return
 
-        row, col = self.xy2rc(event.x, event.y)
-        self.game.make_move(WHITE, row, col)
+        self._place_stone(WHITE, event.x, event.y)
+
+    def _place_stone(self, color, x, y):
+        row, col = self.xy2rc(x, y)
+        if row == -1 or col == -1:
+            return
+
+        if not self.game.is_playing() or self.game.next_move_color != color:
+            return
+
+        if (row, col) in self._stones:
+            return
+
+        self.game.make_move(color, row, col)
 
     def rc2xy(self, row: int, col: int) -> (int, int):
         return CANVAS_OFFSET + MARGIN + col * GRID_SIZE, CANVAS_OFFSET + MARGIN + row * GRID_SIZE
@@ -86,6 +94,9 @@ class Board(Canvas):
     def xy2rc(self, x: float, y: float) -> (int, int):
         col = int(round((x - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
         row = int(round((y - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
+        x2, y2 = self.rc2xy(row, col)
+        if abs(x2-x) > STONE_RADIUS or abs(y2-y) > STONE_RADIUS:
+            return -1, -1
         return row, col
 
     def add_stone(self, color, row, col):
