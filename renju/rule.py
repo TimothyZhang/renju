@@ -21,7 +21,7 @@ def opponent_of(color: Color) -> Color:
 
 class Renju:
     def __init__(self):
-        self._board = []
+        self._board = [[NONE] * BOARD_ROWS for _ in range(BOARD_COLS)]
         """:type: List[List[Color]]"""
 
         # todo is there an official name?

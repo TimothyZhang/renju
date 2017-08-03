@@ -1,7 +1,25 @@
 from renju.rule import Renju, Color
 
 
-class Server(Renju):
+class Listener:
+    # todo: player info
+    def on_started(self):
+        raise NotImplementedError()
+
+    def on_move_made(self, color: Color, row: int, col: int):
+        raise NotImplementedError()
+
+    def on_move_unmade(self):
+        raise NotImplementedError()
+
+    def on_resigned(self, color: Color):
+        raise NotImplementedError()
+
+    def on_finished(self, winner: Color):
+        raise NotImplementedError()
+
+
+class Game(Renju):
     def __init__(self):
         super().__init__()
         self._listeners = []
@@ -36,21 +54,3 @@ class Server(Renju):
 
         for l in self._listeners:
             l.on_finished(self.get_winner())
-
-
-class Listener:
-    # todo: player info
-    def on_started(self):
-        raise NotImplementedError()
-
-    def on_move_made(self, color: Color, row: int, col: int):
-        raise NotImplementedError()
-
-    def on_move_unmade(self):
-        raise NotImplementedError()
-
-    def on_resigned(self, color: Color):
-        raise NotImplementedError()
-
-    def on_finished(self, winner: Color):
-        raise NotImplementedError()
