@@ -1,5 +1,6 @@
 from tkinter import Canvas
 
+from renju.game import Game
 from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE
 
 
@@ -29,6 +30,10 @@ class Board(Canvas):
         self._draw_board()
         self.bind('<Button-1>', self._on_button1_clicked)
         self.bind('<Button-3>', self._on_button3_clicked)
+
+    @property
+    def game(self) -> Game:
+        return self.frame.game
 
     def _draw_board(self):
         top = left = MARGIN + CANVAS_OFFSET
@@ -61,6 +66,20 @@ class Board(Canvas):
         x, y = center
         return self.create_oval((x - radius, y - radius, x + radius, y + radius), fill=color)
 
+    def _on_button1_clicked(self, event):
+        if not self.game.is_playing() or self.game.next_move_color != BLACK:
+            return
+
+        row, col = self.xy2rc(event.x, event.y)
+        self.game.make_move(BLACK, row, col)
+
+    def _on_button3_clicked(self, event):
+        if not self.game.is_playing() or self.game.next_move_color != WHITE:
+            return
+
+        row, col = self.xy2rc(event.x, event.y)
+        self.game.make_move(WHITE, row, col)
+
     def rc2xy(self, row: int, col: int) -> (int, int):
         return CANVAS_OFFSET + MARGIN + col * GRID_SIZE, CANVAS_OFFSET + MARGIN + row * GRID_SIZE
 
@@ -69,19 +88,16 @@ class Board(Canvas):
         row = int(round((y - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
         return row, col
 
-    def _on_button1_clicked(self, event):
-        row, col = self.xy2rc(event.x, event.y)
-        self.frame.game.make_move(BLACK, row, col)
-
-    def _on_button3_clicked(self, event):
-        row, col = self.xy2rc(event.x, event.y)
-        self.frame.game.make_move(WHITE, row, col)
-
     def add_stone(self, color, row, col):
         assert (row, col) not in self._stones
         self._stones[(row, col)] = self._draw_circle(self.rc2xy(row, col),
                                                      STONE_RADIUS,
                                                      'black' if color == BLACK else 'white')
+
+    def reset(self):
+        for stone in self._stones.values():
+            self.delete(stone)
+        self._stones.clear()
 
         # # bg
         # image = Image.open("images/board.jpg")

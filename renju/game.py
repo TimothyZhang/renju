@@ -1,4 +1,4 @@
-from renju.rule import Renju, Color
+from renju.rule import Renju, Color, FinishReason
 
 
 class Listener:
@@ -12,10 +12,7 @@ class Listener:
     def on_move_unmade(self):
         raise NotImplementedError()
 
-    def on_resigned(self, color: Color):
-        raise NotImplementedError()
-
-    def on_finished(self, winner: Color):
+    def on_finished(self, winner: Color, reason: FinishReason):
         raise NotImplementedError()
 
 
@@ -41,7 +38,7 @@ class Game(Renju):
 
         if self.is_finished():
             for l in self._listeners:
-                l.on_finished(self.get_winner())
+                l.on_finished(self.get_winner(), FinishReason.FIVE)
 
     def unmake_move(self):
         raise NotImplementedError()
@@ -50,7 +47,4 @@ class Game(Renju):
         super().resign(color)
 
         for l in self._listeners:
-            l.on_resigned(color)
-
-        for l in self._listeners:
-            l.on_finished(self.get_winner())
+            l.on_finished(self.get_winner(), FinishReason.RESIGN)

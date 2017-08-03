@@ -1,4 +1,5 @@
-from typing import  NewType
+from enum import Enum
+from typing import NewType
 
 Color = NewType('Color', int)
 
@@ -14,9 +15,24 @@ BOARD_ROWS = 15
 FIVE = 5
 
 
+def get_color_name(color: Color):
+    if color == NONE:
+        return 'none'
+    if color == BLACK:
+        return 'black'
+    if color == WHITE:
+        return 'white'
+
+
 def opponent_of(color: Color) -> Color:
     assert color != NONE
     return WHITE if color == BLACK else BLACK
+
+
+class FinishReason(Enum):
+    FIVE = 0
+    FORBIDDEN = 1
+    RESIGN = 2
 
 
 class Renju:
@@ -26,15 +42,16 @@ class Renju:
 
         # todo is there an official name?
         self._history = []
-        self._resigned = NONE
         self._winner = NONE
-        self._finished = False
+        self._finish_reason = FIVE
+        self._started = False
 
     def start(self):
         self._board = [[NONE] * BOARD_ROWS for _ in range(BOARD_COLS)]
         self._history = []
-        self._resigned = self._winner = NONE
-        self._finished = False
+        self._winner = NONE
+        self._finish_reason = FIVE
+        self._started = True
 
     def make_move(self, color: Color, row: int, col: int):
         # assert self._board[row][col] == NONE
@@ -43,10 +60,15 @@ class Renju:
         self._check_finished()
 
     def resign(self, color: Color):
-        self._resigned = color
         self._winner = opponent_of(color)
-        self._finished = True
+        self._finish_reason = FinishReason.RESIGN
 
+    @property
+    def next_move_color(self) -> Color:
+        last = self.last_moved_color
+        return BLACK if last == NONE else opponent_of(last)
+
+    @property
     def last_moved_color(self) -> Color:
         if not self._history:
             return NONE
@@ -56,20 +78,29 @@ class Renju:
     def get_winner(self) -> Color:
         return self._winner
 
+    def is_started(self) -> bool:
+        return self._started
+
     def is_finished(self) -> bool:
-        return self._finished
+        return self._winner != NONE
+
+    def is_playing(self) -> bool:
+        return self.is_started() and not self.is_finished()
+
+    def _finish(self, color: Color, reason: FinishReason):
+        self._winner = color
+        self._finish_reason = reason
 
     def _check_finished(self):
         """        
         Checks whether the last move ends the game. 
         """
         # todo support Renju rules.
-
-        if self._resigned != NONE:
-            return True
+        if self.is_finished():
+            return
 
         if not self._history:
-            return False
+            return
 
         board = self._board
         row, col = self._history[-1]
@@ -87,7 +118,9 @@ class Renju:
             n += 1
 
         if n >= FIVE:
-            return True
+            self._finished = True
+            self._winner = self.last_moved_color
+            return
 
         # vertical
         n = 1
