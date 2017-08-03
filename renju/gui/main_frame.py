@@ -1,9 +1,11 @@
 from enum import Enum
 from tkinter import Frame, LEFT, Button, RIGHT, GROOVE, messagebox, DISABLED, NORMAL
 
+from renju.ai.ais.random import RandomAI
+from renju.ai.base import AIHelper
 from renju.game import Listener, Game
 from renju.gui.board import Board
-from renju.rule import Color, get_color_name, FinishReason
+from renju.rule import Color, get_color_name, FinishReason, WHITE, NONE, opponent_of
 
 
 class GameMode(Enum):
@@ -21,6 +23,20 @@ class MainFrame(Frame, Listener):
         self._init_gui()
         self.game_mode = GameMode.ONE_PLAYER
 
+        self.ai_color = NONE
+        self.ai_helper = None
+        """:type: AIHelper"""
+
+    @property
+    def human_color(self):
+        return opponent_of(self.ai_color)
+
+    def is_human(self, color: Color):
+        if self.game_mode == GameMode.TWO_PLAYERS:
+            return True
+
+        return color == self.human_color
+
     def _init_gui(self):
         self.board = Board(self)
         self.board.pack(side=LEFT)
@@ -33,6 +49,11 @@ class MainFrame(Frame, Listener):
 
     def _start_one_player(self):
         self.game_mode = GameMode.ONE_PLAYER
+        self.ai_color = WHITE
+
+        self.ai_helper = AIHelper(self.game, RandomAI())
+        self.ai_helper.set_color(WHITE)
+
         self.game.start()
         self._set_start_button_stats(DISABLED)
 
@@ -44,9 +65,6 @@ class MainFrame(Frame, Listener):
     def _set_start_button_stats(self, state):
         self.start_1p_button.config(state=state)
         self.start_2p_button.config(state=state)
-
-    def on_move_unmade(self):
-        pass
 
     def on_finished(self, winner: Color, reason: FinishReason):
         messagebox.showinfo('Finished', 'Winner: %s\nReason: %s' % (get_color_name(winner), reason))

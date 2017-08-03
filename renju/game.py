@@ -9,9 +9,6 @@ class Listener:
     def on_move_made(self, color: Color, row: int, col: int):
         raise NotImplementedError()
 
-    def on_move_unmade(self):
-        raise NotImplementedError()
-
     def on_finished(self, winner: Color, reason: FinishReason):
         raise NotImplementedError()
 
@@ -39,9 +36,6 @@ class Game(Renju):
         if self.is_finished():
             for l in self._listeners:
                 l.on_finished(self.get_winner(), FinishReason.FIVE)
-
-    def unmake_move(self):
-        raise NotImplementedError()
 
     def resign(self, color):
         super().resign(color)

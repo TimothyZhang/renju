@@ -120,9 +120,7 @@ class Renju:
             n += 1
 
         if n >= FIVE:
-            self._finished = True
-            self._winner = self.last_moved_color
-            return
+            return self._finish(self.last_moved_color, FinishReason.FIVE)
 
         # vertical
         n = 1
@@ -134,7 +132,7 @@ class Renju:
             if board[r][col] != color:
                 break
         if n >= FIVE:
-            return True
+            return self._finish(self.last_moved_color, FinishReason.FIVE)
 
         # main diagonal
         n = 1
@@ -151,7 +149,7 @@ class Renju:
             c += 1
 
         if n >= FIVE:
-            return True
+            return self._finish(self.last_moved_color, FinishReason.FIVE)
 
         # anti diagonal
         n = 1
@@ -168,9 +166,7 @@ class Renju:
             c -= 1
 
         if n >= FIVE:
-            return True
-
-        return False
+            return self._finish(self.last_moved_color, FinishReason.FIVE)
 
 #
 # def iterate_rows():

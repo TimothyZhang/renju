@@ -1,7 +1,7 @@
 from tkinter import Canvas
 
 from renju.game import Game
-from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE
+from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE, Color
 from renju.gui import main_frame
 
 MARGIN = 10
@@ -70,9 +70,6 @@ class Board(Canvas):
         self._place_stone(BLACK, event.x, event.y)
 
     def _on_button3_clicked(self, event):
-        if self.frame.game_mode == main_frame.GameMode.ONE_PLAYER:
-            return
-
         self._place_stone(WHITE, event.x, event.y)
 
     def _place_stone(self, color, x, y):
@@ -81,6 +78,9 @@ class Board(Canvas):
             return
 
         if not self.game.is_playing() or self.game.next_move_color != color:
+            return
+
+        if not self.frame.is_human(color):
             return
 
         if (row, col) in self._stones:
