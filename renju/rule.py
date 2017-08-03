@@ -66,6 +66,9 @@ class Renju:
         row, col = self._history.pop()
         self._board[row][col] = NONE
 
+        self._winner = NONE
+        return row, col
+
     def resign(self, color: Color):
         self._winner = opponent_of(color)
         self._finish_reason = FinishReason.RESIGN

@@ -106,6 +106,10 @@ class Board(Canvas):
                                                      STONE_RADIUS,
                                                      'black' if color == BLACK else 'white')
 
+    def remove_stone(self, row, col):
+        stone = self._stones.pop((row, col))
+        self.delete(stone)
+
     def reset(self):
         for stone in self._stones.values():
             self.delete(stone)

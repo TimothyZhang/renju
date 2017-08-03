@@ -1,5 +1,3 @@
-import random
-
 from renju.ai.base import AI
 from renju.rule import BOARD_ROWS, BOARD_COLS, Color, opponent_of, NONE
 
@@ -27,19 +25,15 @@ class MaxMinAI(AI):
     def max_min(self, depth: int) -> (int, (int, int)):
         if depth == 0:
             return self.evaluate(self.renju.next_move_color), None
+        if self.renju.is_finished():
+            return -MAX_SCORE, None
 
         max_score, max_move = MIN_SCORE, None
         for row, col in self.iter_moves():
             self.renju.make_move(row, col)
 
-            if self.renju.is_finished():  # game over
-                if self.renju.get_winner() == self.renju.last_moved_color:
-                    score = MAX_SCORE
-                else:
-                    score = -1
-            else:
-                score, _ = self.max_min(depth-1)
-                score = -score
+            score, _ = self.max_min(depth-1)
+            score = -score
 
             if score > max_score:
                 max_score = score

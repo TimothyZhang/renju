@@ -60,6 +60,13 @@ class AIHelper(Listener):
         if not self.renju.is_finished() and self.renju.next_move_color == self.color:
             self._move()
 
+    def on_move_unmade(self, row, col):
+        self.renju.unmake_move()
+
     def _move(self):
-        row, col = self.ai.get_move()
-        self.game.make_move(self.color, row, col)
+        move = self.ai.get_move()
+        if move is None:
+            self.game.resign(self.color)
+        else:
+            row, col = move
+            self.game.make_move(self.color, row, col)
