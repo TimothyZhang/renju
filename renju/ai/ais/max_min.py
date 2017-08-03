@@ -1,10 +1,22 @@
 import random
 
 from renju.ai.base import AI
-from renju.rule import BOARD_ROWS, BOARD_COLS, Color, opponent_of
+from renju.rule import BOARD_ROWS, BOARD_COLS, Color, opponent_of, NONE
 
 MAX_SCORE = 2**31
 MIN_SCORE = -MAX_SCORE
+
+# SCORE_TABLE[len][blocks]
+SCORE_TABLE = (
+    (),
+    (10, 5, 1),  # 1 stone
+    (100, 50, 2),  # 2 stones
+    (1000, 500, 10),  # 3 stones
+    (10000, 5000, 20),  # 4 stones
+)
+
+TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, 0) for row in range(BOARD_ROWS)]
+TOP_RIGHT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, BOARD_COLS-1) for row in range(BOARD_ROWS)]
 
 
 class MaxMinAI(AI):
@@ -37,30 +49,131 @@ class MaxMinAI(AI):
         return max_score, max_move
 
     def iter_moves(self):
-        return self.renju.iter_empty_positions()
+        board = self.renju.board
+        for row, col in self.renju.iter_empty_positions():
+            for nr, nc in iter_neighbours(row, col):  # only consider positions nearing existing stones.
+                if board[nr][nc] != NONE:
+                    yield row, col
+                    break
 
     def evaluate(self, color: Color) -> int:
         board = self.renju.board
         opponent = opponent_of(color)
 
         score = 0
+        # horizontal
         for row in range(BOARD_ROWS):
-            for col in range(BOARD_COLS):
+            col = 0
+            while col < BOARD_COLS:
                 if board[row][col] != color:
+                    col += 1
                     continue
 
-                for nr, nc in iter_neighbours(row, col):
-                    if board[nr][nc] == color:
-                        score += 1
-                    elif board[nr][nc] == opponent:
-                        score += 2
-                    else:
-                        score += 0
+                head = col
+                n = 1
+                col += 1
+                while col < BOARD_COLS and board[row][col] == color:
+                    n += 1
+                    col += 1
+                tail = col - 1
+
+                if n >= 5:
+                    return MAX_SCORE
+
+                blocks = 0
+                if head == 0 or board[row][head-1] == opponent:
+                    blocks += 1
+                if tail == BOARD_COLS-1 or board[row][tail+1] == opponent:
+                    blocks += 1
+                score += SCORE_TABLE[n][blocks]
+
+        # vertical
+        for col in range(BOARD_COLS):
+            row = 0
+            while row < BOARD_ROWS:
+                if board[row][col] != color:
+                    row += 1
+                    continue
+
+                head = row
+                n = 1
+                row += 1
+                while row < BOARD_ROWS and board[row][col] == color:
+                    n += 1
+                    row += 1
+                tail = row - 1
+
+                if n >= 5:
+                    return MAX_SCORE
+
+                blocks = 0
+                if head == 0 or board[head-1][col] == opponent:
+                    blocks += 1
+                if tail == BOARD_ROWS-1 or board[tail+1][col] == opponent:
+                    blocks += 1
+                score += SCORE_TABLE[n][blocks]
+
+        # main diagonal
+        for row, col in TOP_LEFT_POSITIONS:
+            while row < BOARD_ROWS and col < BOARD_COLS:
+                if board[row][col] != color:
+                    row += 1
+                    col += 1
+                    continue
+
+                hr, hc = row, col
+                n = 1
+                while row < BOARD_ROWS and col < BOARD_COLS and board[row][col] == color:
+                    row += 1
+                    col += 1
+                    n += 1
+                tr, tc = row-1, col-1
+
+                if n >= 5:
+                    return MAX_SCORE
+
+                blocks = 0
+                if hr == 0 or hc == 0 or board[hr-1][hc-1] == opponent:
+                    blocks += 1
+                if tr == BOARD_ROWS-1 or tc == BOARD_COLS-1 or board[hr+1][hc+1] == opponent:
+                    blocks += 1
+                score += SCORE_TABLE[n][blocks]
+
+        # main anti diagonal
+        for row, col in TOP_RIGHT_POSITIONS:
+            while row < BOARD_ROWS and col >= 0:
+                if board[row][col] != color:
+                    row += 1
+                    col -= 1
+                    continue
+
+                hr, hc = row, col
+                n = 1
+                while row < BOARD_ROWS and col >= 0 and board[row][col] == color:
+                    row += 1
+                    col -= 1
+                    n += 1
+                tr, tc = row-1, col+1
+
+                if n >= 5:
+                    return MAX_SCORE
+
+                blocks = 0
+                if hr == 0 or hc == BOARD_COLS-1 or board[hr-1][hc+1] == opponent:
+                    blocks += 1
+                if tr == BOARD_ROWS-1 or tc == 0 or board[tr+1][tc-1] == opponent:
+                    blocks += 1
+                score += SCORE_TABLE[n][blocks]
+
         return score
 
 
-def iter_neighbours(row, col) -> (int, int):
-    for dr, dc in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
-        nr, nc = row + dr, col + dc
-        if 0 <= nr < BOARD_ROWS and 0 <= nc < BOARD_COLS:
-            yield nr, nc
+def iter_neighbours(row, col, distance=1) -> (int, int):
+    for dr in range(-distance, distance+1):
+        for dc in range(-distance, distance+1):
+            if dr == 0 and dc == 0:
+                continue
+
+            nr, nc = row + dr, col + dc
+            if 0 <= nr < BOARD_ROWS and 0 <= nc < BOARD_COLS:
+                yield nr, nc
