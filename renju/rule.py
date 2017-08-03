@@ -135,6 +135,7 @@ class Renju:
         for r in range(row+1, min(row+FIVE, BOARD_ROWS)):
             if board[r][col] != color:
                 break
+            n += 1
         if n >= FIVE:
             return self._finish(self.last_moved_color, FinishReason.FIVE)
 

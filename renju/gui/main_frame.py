@@ -48,11 +48,12 @@ class MainFrame(Frame, Listener):
         self.start_2p_button.pack(side=RIGHT)
 
     def _start_one_player(self):
+        self.game.start()
         self.game_mode = GameMode.ONE_PLAYER
         self.ai_color = WHITE
 
-        self.ai_helper = AIHelper(self.game, RandomAI())
-        self.ai_helper.set_color(WHITE)
+        self.ai_helper = AIHelper(self.game)
+        self.ai_helper.reset(RandomAI(), WHITE)
 
         self.game.start()
         self._set_start_button_stats(DISABLED)

@@ -14,6 +14,7 @@ BOARD_SIZE = LINE_LENGTH + MARGIN * 2
 
 DOT_RADIUS = 3
 STONE_RADIUS = 10
+STONE_CLICK_RADIUS = 20
 # fixme: I have to put a offset, otherwise the board is not in the center of canvas.
 CANVAS_OFFSET = 3
 
@@ -95,7 +96,7 @@ class Board(Canvas):
         col = int(round((x - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
         row = int(round((y - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
         x2, y2 = self.rc2xy(row, col)
-        if abs(x2-x) > STONE_RADIUS or abs(y2-y) > STONE_RADIUS:
+        if abs(x2-x) > STONE_CLICK_RADIUS or abs(y2-y) > STONE_CLICK_RADIUS:
             return -1, -1
         return row, col
 

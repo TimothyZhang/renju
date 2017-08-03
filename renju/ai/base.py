@@ -17,19 +17,21 @@ class RenjuWrapper(Renju):
 
 
 class AIHelper(Listener):
-    def __init__(self, game: Game, ai: AI):
+    def __init__(self, game: Game):
         self.game = game
         self.game.add_listener(self)
 
         self.renju = RenjuWrapper()
-        self.ai = ai
+        self.ai = None
+        """:type: AI"""
         self.color = NONE
 
-    def set_color(self, color: Color):
+    def reset(self, ai: AI, color: Color):
+        self.ai = ai
         self.color = color
 
     def on_finished(self, winner: Color, reason: FinishReason):
-        pass
+        self.game.remove_listener(self)
 
     def on_started(self):
         self.renju.start()

@@ -22,6 +22,9 @@ class Game(Renju):
         assert listener not in self._listeners
         self._listeners.append(listener)
 
+    def remove_listener(self, listener: Listener):
+        self._listeners.remove(listener)
+
     def start(self):
         super().start()
 
