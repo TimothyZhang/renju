@@ -10,9 +10,9 @@ MIN_SCORE = -MAX_SCORE
 SCORE_TABLE = (
     (),
     (10, 5, 1),  # 1 stone
-    (100, 50, 2),  # 2 stones
-    (1000, 500, 10),  # 3 stones
-    (10000, 5000, 20),  # 4 stones
+    (1000, 500, 10),  # 2 stones
+    (100000, 50000, 100),  # 3 stones
+    (10000000, 5000000, 1000),  # 4 stones
 )
 
 TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, 0) for row in range(BOARD_ROWS)]
@@ -65,105 +65,114 @@ class MaxMinAI(AI):
         for row in range(BOARD_ROWS):
             col = 0
             while col < BOARD_COLS:
-                if board[row][col] != color:
+                if board[row][col] == NONE:  # skip empty positions
                     col += 1
                     continue
 
+                color2 = board[row][col]
                 head = col
-                n = 1
                 col += 1
-                while col < BOARD_COLS and board[row][col] == color:
+                n = 1
+                while col < BOARD_COLS and board[row][col] == color2:
                     n += 1
                     col += 1
                 tail = col - 1
 
                 if n >= 5:
-                    return MAX_SCORE
+                    return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
                 if head == 0 or board[row][head-1] == opponent:
                     blocks += 1
                 if tail == BOARD_COLS-1 or board[row][tail+1] == opponent:
                     blocks += 1
-                score += SCORE_TABLE[n][blocks]
+                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
 
         # vertical
         for col in range(BOARD_COLS):
             row = 0
             while row < BOARD_ROWS:
-                if board[row][col] != color:
+                if board[row][col] == NONE:
                     row += 1
                     continue
 
+                color2 = board[row][col]
                 head = row
                 n = 1
                 row += 1
-                while row < BOARD_ROWS and board[row][col] == color:
+                while row < BOARD_ROWS and board[row][col] == color2:
                     n += 1
                     row += 1
                 tail = row - 1
 
                 if n >= 5:
-                    return MAX_SCORE
+                    return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
                 if head == 0 or board[head-1][col] == opponent:
                     blocks += 1
                 if tail == BOARD_ROWS-1 or board[tail+1][col] == opponent:
                     blocks += 1
-                score += SCORE_TABLE[n][blocks]
+
+                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
 
         # main diagonal
         for row, col in TOP_LEFT_POSITIONS:
             while row < BOARD_ROWS and col < BOARD_COLS:
-                if board[row][col] != color:
+                if board[row][col] == NONE:
                     row += 1
                     col += 1
                     continue
 
+                color2 = board[row][col]
                 hr, hc = row, col
+                row += 1
+                col += 1
                 n = 1
-                while row < BOARD_ROWS and col < BOARD_COLS and board[row][col] == color:
+                while row < BOARD_ROWS and col < BOARD_COLS and board[row][col] == color2:
                     row += 1
                     col += 1
                     n += 1
                 tr, tc = row-1, col-1
 
                 if n >= 5:
-                    return MAX_SCORE
+                    return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
                 if hr == 0 or hc == 0 or board[hr-1][hc-1] == opponent:
                     blocks += 1
                 if tr == BOARD_ROWS-1 or tc == BOARD_COLS-1 or board[hr+1][hc+1] == opponent:
                     blocks += 1
-                score += SCORE_TABLE[n][blocks]
+                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
 
         # main anti diagonal
         for row, col in TOP_RIGHT_POSITIONS:
             while row < BOARD_ROWS and col >= 0:
-                if board[row][col] != color:
+                if board[row][col] == NONE:
                     row += 1
                     col -= 1
                     continue
 
+                color2 = board[row][col]
                 hr, hc = row, col
+                row += 1
+                col -= 1
                 n = 1
-                while row < BOARD_ROWS and col >= 0 and board[row][col] == color:
+                while row < BOARD_ROWS and col >= 0 and board[row][col] == color2:
                     row += 1
                     col -= 1
                     n += 1
                 tr, tc = row-1, col+1
 
                 if n >= 5:
-                    return MAX_SCORE
+                    return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
                 if hr == 0 or hc == BOARD_COLS-1 or board[hr-1][hc+1] == opponent:
                     blocks += 1
                 if tr == BOARD_ROWS-1 or tc == 0 or board[tr+1][tc-1] == opponent:
                     blocks += 1
-                score += SCORE_TABLE[n][blocks]
+                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
 
         return score
 
