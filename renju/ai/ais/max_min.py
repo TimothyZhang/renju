@@ -13,8 +13,8 @@ SCORE_TABLE = (
     (10000000, 5000000, 1000),  # 4 stones
 )
 
-TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, 0) for row in range(BOARD_ROWS)]
-TOP_RIGHT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, BOARD_COLS-1) for row in range(BOARD_ROWS)]
+TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, 0) for row in range(1, BOARD_ROWS)]
+TOP_RIGHT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, BOARD_COLS-1) for row in range(1, BOARD_ROWS)]
 
 
 class MaxMinAI(AI):
@@ -31,6 +31,11 @@ class MaxMinAI(AI):
         max_score, max_move = MIN_SCORE, None
         for row, col in self.iter_moves():
             self.renju.make_move(row, col)
+
+            if depth == 2 and row == 7 and col == 6:
+                rrr = 1
+            if depth == 1 and row == 7 and col == 10:
+                kkk = 1
 
             score, _ = self.max_min(depth-1)
             score = -score
@@ -52,7 +57,6 @@ class MaxMinAI(AI):
 
     def evaluate(self, color: Color) -> int:
         board = self.renju.board
-        opponent = opponent_of(color)
 
         score = 0
         # horizontal
@@ -76,6 +80,7 @@ class MaxMinAI(AI):
                     return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
+                opponent = opponent_of(color2)
                 if head == 0 or board[row][head-1] == opponent:
                     blocks += 1
                 if tail == BOARD_COLS-1 or board[row][tail+1] == opponent:
@@ -103,6 +108,7 @@ class MaxMinAI(AI):
                     return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
+                opponent = opponent_of(color2)
                 if head == 0 or board[head-1][col] == opponent:
                     blocks += 1
                 if tail == BOARD_ROWS-1 or board[tail+1][col] == opponent:
@@ -133,6 +139,7 @@ class MaxMinAI(AI):
                     return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
+                opponent = opponent_of(color2)
                 if hr == 0 or hc == 0 or board[hr-1][hc-1] == opponent:
                     blocks += 1
                 if tr == BOARD_ROWS-1 or tc == BOARD_COLS-1 or board[hr+1][hc+1] == opponent:
@@ -162,6 +169,7 @@ class MaxMinAI(AI):
                     return MAX_SCORE if color == color2 else -MAX_SCORE
 
                 blocks = 0
+                opponent = opponent_of(color2)
                 if hr == 0 or hc == BOARD_COLS-1 or board[hr-1][hc+1] == opponent:
                     blocks += 1
                 if tr == BOARD_ROWS-1 or tc == 0 or board[tr+1][tc-1] == opponent:
