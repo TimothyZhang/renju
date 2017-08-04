@@ -48,7 +48,7 @@ class MainFrame(Frame, Listener):
         self.start_2p_button = Button(self, name='2p', text='2P', fg='blue', command=self._start_two_player)
         self.start_2p_button.pack(side=RIGHT)
 
-        self.regret_button = Button(self, name='regret', text='Regret', fg='red', command=self._regret)
+        self.regret_button = Button(self, name='regret', text='Regret', fg='red', command=self._regret, state=DISABLED)
         self.regret_button.pack(side=RIGHT)
 
     def _start_one_player(self):
@@ -76,13 +76,26 @@ class MainFrame(Frame, Listener):
 
     def on_finished(self, winner: Color, reason: FinishReason):
         self._set_start_button_stats(NORMAL)
+
+        self.regret_button.config(state=DISABLED)
         messagebox.showinfo('Finished', 'Winner: %s\nReason: %s' % (get_color_name(winner), reason))
 
     def on_move_made(self, color: Color, row: int, col: int):
         self.board.add_stone(color, row, col)
+
+        if self.game.renju.next_move_color == self.ai_color:
+            self.after(1, self.ai_move)
 
     def on_move_unmade(self, row, col):
         self.board.remove_stone(row, col)
 
     def on_started(self):
         self.board.reset()
+
+        self.regret_button.config(state=NORMAL)
+
+        if self.game.renju.next_move_color == self.ai_color:
+            self.after(1, self.ai_move)
+
+    def ai_move(self):
+        self.ai_helper.move()

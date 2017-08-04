@@ -49,21 +49,14 @@ class AIHelper(Listener):
     def on_started(self):
         self.renju.start()
 
-        if self.color == BLACK:
-            self._move()
-
     def on_move_made(self, color: Color, row: int, col: int):
         # sync board state
         self.renju.make_move(row, col)
 
-        # My turn
-        if not self.renju.is_finished() and self.renju.next_move_color == self.color:
-            self._move()
-
     def on_move_unmade(self, row, col):
         self.renju.unmake_move()
 
-    def _move(self):
+    def move(self):
         move = self.ai.get_move()
         if move is None:
             self.game.resign(self.color)
