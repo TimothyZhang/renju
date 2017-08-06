@@ -3,17 +3,65 @@ from renju.rule import BOARD_ROWS, BOARD_COLS, Color, opponent_of, NONE
 
 MAX_SCORE = 2**31
 
-# SCORE_TABLE[len][blocks]
-SCORE_TABLE = (
-    (),
-    (10, 5, 1),  # 1 stone
-    (1000, 500, 10),  # 2 stones
-    (100000, 50000, 100),  # 3 stones
-    (10000000, 5000000, 1000),  # 4 stones
-)
-
 TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, 0) for row in range(1, BOARD_ROWS)]
 TOP_RIGHT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, BOARD_COLS-1) for row in range(1, BOARD_ROWS)]
+
+
+# Lines
+LINES = []
+""":type: list[list[(int, int)]]"""
+
+WALL = Color(3)
+
+# SCORE_TABLE[len][blocks]
+SINGLE_SEGMENT_SCORES = (
+    (),
+    (1, 5, 10),  # xox, xo-, -o-
+    (10, 100, 1000),  # xoox, xoo-, -oo-
+    (100, 1000, 10000),  # xooox, xooo-, -ooo-
+    (1000, 9000, 1000000),  # xoooox, xoooo-, -oooo-
+)
+
+MULTI_SEGMENT_SCORES = (
+    (),
+    (),
+    (50, 500, 1000),  # xo-ox, xo-o-, -o-o-
+    (500, 4500, 10000),  # xo-oox, xo-oo-, -o-oo-
+    (9000, 10000, 10000),  # xo-ooox/xoo-oox, xo-ooo-/xoo-oo-, -o-ooo-/-oo-oo-
+)
+
+
+
+def init_lines():
+    if LINES:
+        return
+
+    # horizontal
+    for row in range(BOARD_ROWS):
+        LINES.append([(row, col) for col in range(BOARD_COLS)])
+
+    # vertical
+    for col in range(BOARD_COLS):
+        LINES.append([(row, col) for row in range(BOARD_ROWS)])
+
+    # main diagonal
+    for row, col in TOP_LEFT_POSITIONS:
+        line = []
+        while row<BOARD_ROWS and col<BOARD_COLS:
+            line.append((row, col))
+            row += 1
+            col += 1
+        LINES.append(line)
+
+    # main anti diagonal
+    for row, col in TOP_RIGHT_POSITIONS:
+        line = []
+        while row<BOARD_ROWS and col>=0:
+            line.append((row, col))
+            row += 1
+            col -= 1
+        LINES.append(line)
+init_lines()
 
 
 class MaxMinAI(AI):
@@ -49,128 +97,48 @@ class MaxMinAI(AI):
                     yield row, col
                     break
 
-    def evaluate(self, color: Color) -> int:
+    def evaluate(self, for_color: Color) -> int:
         board = self.renju.board
 
-        score = 0
-        # horizontal
-        for row in range(BOARD_ROWS):
-            col = 0
-            while col < BOARD_COLS:
-                if board[row][col] == NONE:  # skip empty positions
-                    col += 1
+        scores = [0, 0, 0]
+        for line in LINES:
+            segments = [[WALL, 1]]  # [[color, count]...]
+            for row, col in line:
+                stone = board[row][col]
+                if stone == segments[-1][0]:
+                    segments[-1][1] += 1
+                else:
+                    segments.append([stone, 1])
+            segments.append([WALL, 1])
+
+            for i in range(1, len(segments)-1):
+                color, count = segments[i]
+                if color == NONE:  # skip empty positions
                     continue
 
-                color2 = board[row][col]
-                head = col
-                col += 1
-                n = 1
-                while col < BOARD_COLS and board[row][col] == color2:
-                    n += 1
-                    col += 1
-                tail = col - 1
+                if count >= 5:  # five in a row, win!
+                    return MAX_SCORE if color == for_color else -MAX_SCORE
 
-                if n >= 5:
-                    return MAX_SCORE if color == color2 else -MAX_SCORE
+                # 2 segments with same color
+                if segments[i+1][0] == NONE and segments[i+1][1] == 1 and segments[i+2][0] == color:
+                    count2 = segments[i+2][1]
+                    total_count = count + count2
 
-                blocks = 0
-                opponent = opponent_of(color2)
-                if head == 0 or board[row][head-1] == opponent:
-                    blocks += 1
-                if tail == BOARD_COLS-1 or board[row][tail+1] == opponent:
-                    blocks += 1
-                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
+                    opens, open_count = 0, 0
+                    if segments[i-1][0] == NONE:
+                        opens += 1
+                        open_count += segments[i-1][1]
+                    if segments[i+3][0] == NONE:
+                        opens += 1
+                        open_count += segments[i+3][1]
 
-        # vertical
-        for col in range(BOARD_COLS):
-            row = 0
-            while row < BOARD_ROWS:
-                if board[row][col] == NONE:
-                    row += 1
+                    scores[color] += MULTI_SEGMENT_SCORES[min(4, total_count)][opens]
                     continue
 
-                color2 = board[row][col]
-                head = row
-                n = 1
-                row += 1
-                while row < BOARD_ROWS and board[row][col] == color2:
-                    n += 1
-                    row += 1
-                tail = row - 1
-
-                if n >= 5:
-                    return MAX_SCORE if color == color2 else -MAX_SCORE
-
-                blocks = 0
-                opponent = opponent_of(color2)
-                if head == 0 or board[head-1][col] == opponent:
-                    blocks += 1
-                if tail == BOARD_ROWS-1 or board[tail+1][col] == opponent:
-                    blocks += 1
-
-                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
-
-        # main diagonal
-        for row, col in TOP_LEFT_POSITIONS:
-            while row < BOARD_ROWS and col < BOARD_COLS:
-                if board[row][col] == NONE:
-                    row += 1
-                    col += 1
-                    continue
-
-                color2 = board[row][col]
-                hr, hc = row, col
-                row += 1
-                col += 1
-                n = 1
-                while row < BOARD_ROWS and col < BOARD_COLS and board[row][col] == color2:
-                    row += 1
-                    col += 1
-                    n += 1
-                tr, tc = row-1, col-1
-
-                if n >= 5:
-                    return MAX_SCORE if color == color2 else -MAX_SCORE
-
-                blocks = 0
-                opponent = opponent_of(color2)
-                if hr == 0 or hc == 0 or board[hr-1][hc-1] == opponent:
-                    blocks += 1
-                if tr == BOARD_ROWS-1 or tc == BOARD_COLS-1 or board[hr+1][hc+1] == opponent:
-                    blocks += 1
-                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
-
-        # main anti diagonal
-        for row, col in TOP_RIGHT_POSITIONS:
-            while row < BOARD_ROWS and col >= 0:
-                if board[row][col] == NONE:
-                    row += 1
-                    col -= 1
-                    continue
-
-                color2 = board[row][col]
-                hr, hc = row, col
-                row += 1
-                col -= 1
-                n = 1
-                while row < BOARD_ROWS and col >= 0 and board[row][col] == color2:
-                    row += 1
-                    col -= 1
-                    n += 1
-                tr, tc = row-1, col+1
-
-                if n >= 5:
-                    return MAX_SCORE if color == color2 else -MAX_SCORE
-
-                blocks = 0
-                opponent = opponent_of(color2)
-                if hr == 0 or hc == BOARD_COLS-1 or board[hr-1][hc+1] == opponent:
-                    blocks += 1
-                if tr == BOARD_ROWS-1 or tc == 0 or board[tr+1][tc-1] == opponent:
-                    blocks += 1
-                score += SCORE_TABLE[n][blocks] if color == color2 else -SCORE_TABLE[n][blocks]
-
-        return score
+                # single segment
+                opens = int(segments[i - 1][0] == NONE) + int(segments[i + 1] == NONE)
+                scores[color] += SINGLE_SEGMENT_SCORES[count][opens]
+        return scores[for_color] - scores[opponent_of(for_color)]
 
 
 def iter_neighbours(row, col, distance=1) -> (int, int):
