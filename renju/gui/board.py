@@ -1,11 +1,13 @@
-from tkinter import Canvas
+import string
+from tkinter import Canvas, RIGHT
 
 from renju.game import Game
 from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE
 from renju.gui import main_frame
 
-MARGIN = 10
-GRID_SIZE = 40
+MARGIN = 30
+TEXT_SPACING = 8
+GRID_SIZE = 30
 LINE_WIDTH = 1
 assert BOARD_COLS == BOARD_ROWS
 
@@ -14,7 +16,7 @@ BOARD_SIZE = LINE_LENGTH + MARGIN * 2
 
 DOT_RADIUS = 3
 STONE_RADIUS = 10
-STONE_CLICK_RADIUS = 20
+STONE_CLICK_RADIUS = 15
 # fixme: I have to put a offset, otherwise the board is not in the center of canvas.
 CANVAS_OFFSET = 3
 
@@ -43,13 +45,15 @@ class Board(Canvas):
         # horizontal lines
         y = top
         for row in range(BOARD_ROWS):
-            self.create_line(left, y, right, y)
+            self.create_line(left, y, right, y)  # Line
+            self.create_text(left-TEXT_SPACING, y, justify=RIGHT, text=str(15-row))  # Label
             y += GRID_SIZE
 
         # vertical lines
         x = left
         for col in range(BOARD_COLS):
-            self.create_line(x, top, x, bottom)
+            self.create_line(x, top, x, bottom)  # Line
+            self.create_text(x, bottom + TEXT_SPACING, text=string.ascii_uppercase[col])  # Label
             x += GRID_SIZE
 
         # dots

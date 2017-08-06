@@ -2,7 +2,6 @@ from renju.ai.base import AI
 from renju.rule import BOARD_ROWS, BOARD_COLS, Color, opponent_of, NONE
 
 MAX_SCORE = 2**31
-MIN_SCORE = -MAX_SCORE
 
 # SCORE_TABLE[len][blocks]
 SCORE_TABLE = (
@@ -28,14 +27,9 @@ class MaxMinAI(AI):
         if self.renju.is_finished():
             return -MAX_SCORE, None
 
-        max_score, max_move = MIN_SCORE, None
+        max_score, max_move = -MAX_SCORE, None
         for row, col in self.iter_moves():
             self.renju.make_move(row, col)
-
-            if depth == 2 and row == 7 and col == 6:
-                rrr = 1
-            if depth == 1 and row == 7 and col == 10:
-                kkk = 1
 
             score, _ = self.max_min(depth-1)
             score = -score

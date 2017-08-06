@@ -1,6 +1,7 @@
 from enum import Enum
-from tkinter import Frame, LEFT, Button, RIGHT, messagebox, DISABLED, NORMAL
+from tkinter import Frame, LEFT, Button, RIGHT, messagebox, DISABLED, NORMAL, TOP
 
+from renju.ai.ais.alpha_beta import AlphaBetaAI
 from renju.ai.ais.max_min import MaxMinAI
 from renju.ai.ais.random import RandomAI
 from renju.ai.base import AIHelper
@@ -43,13 +44,13 @@ class MainFrame(Frame, Listener):
         self.board.pack(side=LEFT)
 
         self.start_1p_button = Button(self, name='1p', text='1P', fg='blue', command=self._start_one_player)
-        self.start_1p_button.pack(side=RIGHT)
+        self.start_1p_button.pack(side=TOP)
 
         self.start_2p_button = Button(self, name='2p', text='2P', fg='blue', command=self._start_two_player)
-        self.start_2p_button.pack(side=RIGHT)
+        self.start_2p_button.pack(side=TOP)
 
         self.regret_button = Button(self, name='regret', text='Regret', fg='red', command=self._regret, state=DISABLED)
-        self.regret_button.pack(side=RIGHT)
+        self.regret_button.pack(side=TOP)
 
     def _start_one_player(self):
         self.game.start()
@@ -57,7 +58,7 @@ class MainFrame(Frame, Listener):
         self.ai_color = WHITE
 
         self.ai_helper = AIHelper(self.game)
-        self.ai_helper.reset(MaxMinAI, WHITE)
+        self.ai_helper.reset(AlphaBetaAI, WHITE)
 
         self.game.start()
         self._set_start_button_stats(DISABLED)
