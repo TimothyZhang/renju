@@ -1,6 +1,31 @@
 from renju.ai.ais.max_min import MaxMinAI, MAX_SCORE
 
 
+"""
+Alpha Beta Pruning without heuristic search(AI white):
+POS     Searched    Pruned      Pruned %
+H8
+H9      16402       34542       67.8%
+I9
+I8      180788      149034      45.19%
+K10
+K11     250397      756619      75.13%
+K8
+J11     1001215     1909869     65.61%
+
+Alpha Beta Pruning with heuristic search(AI white):
+POS     Searched    Pruned      Pruned %
+H8
+H9      16402       34542       67.8%
+I9
+I8      180788      149034      45.19%
+K10
+K11     250397      756619      75.13%
+K8
+J11     1001215     1909869     65.61%
+"""
+
+
 class AlphaBetaAI(MaxMinAI):
     evaluated = 0
     pruned = 0
@@ -8,7 +33,8 @@ class AlphaBetaAI(MaxMinAI):
     def get_move(self) -> (int, int):
         self.evaluated = self.pruned = 0
         _, move = self.alpha_beta(4, -MAX_SCORE, MAX_SCORE)
-        print('pruned: %.2f%%' % (self.pruned * 100 / (self.evaluated + self.pruned)))
+        print('searched: %s, prunded: %s, pruned %%: %.2f%%' % (self.evaluated, self.pruned,
+                                                                self.pruned * 100 / (self.evaluated + self.pruned)))
         return move
 
     def alpha_beta(self, depth: int, alpha: int, beta: int) -> (int, (int, int)):
@@ -18,15 +44,20 @@ class AlphaBetaAI(MaxMinAI):
         if self.renju.is_finished():
             return -MAX_SCORE, None
 
+        moves = self.generate_moves()
+        if depth >= 3:
+            print('  ' * (4-depth), 'moves: %s' % len(moves))
         max_move = None
-        for row, col in self.iter_moves():
+        for i, (row, col) in enumerate(moves):
+            if depth >= 3:
+                print('  ' * (4-depth), '  move %s: %s, %s' % (i, row, col))
             self.renju.make_move(row, col)
 
             score, move = self.alpha_beta(depth-1, -beta, -alpha)
             score = -score
 
             if score > beta:
-                self.pruned += 1
+                self.pruned += (2 ** depth - 1) * (len(moves) - i - 1)
                 self.renju.unmake_move()
                 return MAX_SCORE, None
 
@@ -36,3 +67,14 @@ class AlphaBetaAI(MaxMinAI):
             self.renju.unmake_move()
 
         return alpha, max_move
+
+    # def generate_moves(self):
+    #     board = self.renju.board
+    #     moves = []
+    #     color = self.renju.next_move_color
+    #
+    #     for row, col in self.renju.iter_empty_positions():
+    #         for nr, nc in iter_neighbours(row, col):  # only consider positions nearing existing stones.
+    #             if board[nr][nc] != NONE:
+    #                 moves.append((row, col))
+    #     return moves

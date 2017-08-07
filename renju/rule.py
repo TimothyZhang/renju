@@ -1,3 +1,4 @@
+import string
 from enum import Enum
 from typing import NewType
 
@@ -22,6 +23,10 @@ def get_color_name(color: Color):
         return 'black'
     if color == WHITE:
         return 'white'
+
+
+def get_position_name(row, col):
+    return string.ascii_uppercase[col] + str(row+1)
 
 
 def opponent_of(color: Color) -> Color:

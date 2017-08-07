@@ -1,7 +1,8 @@
 from typing import Type
 
 from renju.game import Listener, Game
-from renju.rule import Renju, Color, FinishReason, NONE, BLACK, BOARD_COLS, BOARD_ROWS
+from renju.rule import Renju, Color, FinishReason, NONE, BLACK, BOARD_COLS, BOARD_ROWS, get_position_name, \
+    get_color_name
 
 
 class AI:
@@ -52,6 +53,7 @@ class AIHelper(Listener):
     def on_move_made(self, color: Color, row: int, col: int):
         # sync board state
         self.renju.make_move(row, col)
+        print('%s: %s' % (get_color_name(color), get_position_name(row, col)))
 
     def on_move_unmade(self, row, col):
         self.renju.unmake_move()

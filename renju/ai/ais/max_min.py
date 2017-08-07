@@ -31,7 +31,6 @@ MULTI_SEGMENT_SCORES = (
 )
 
 
-
 def init_lines():
     if LINES:
         return
@@ -76,7 +75,7 @@ class MaxMinAI(AI):
             return -MAX_SCORE, None
 
         max_score, max_move = -MAX_SCORE, None
-        for row, col in self.iter_moves():
+        for row, col in self.generate_moves():
             self.renju.make_move(row, col)
 
             score, _ = self.max_min(depth-1)
@@ -89,13 +88,15 @@ class MaxMinAI(AI):
 
         return max_score, max_move
 
-    def iter_moves(self):
+    def generate_moves(self):
         board = self.renju.board
+        moves = []
+
         for row, col in self.renju.iter_empty_positions():
-            for nr, nc in iter_neighbours(row, col):  # only consider positions nearing existing stones.
+            for nr, nc in iter_neighbours(row, col, 2):  # only consider positions nearing existing stones.
                 if board[nr][nc] != NONE:
-                    yield row, col
-                    break
+                    moves.append((row, col))
+        return moves
 
     def evaluate(self, for_color: Color) -> int:
         board = self.renju.board
