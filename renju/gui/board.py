@@ -2,16 +2,15 @@ import string
 from tkinter import Canvas, RIGHT
 
 from renju.game import Game
-from renju.rule import BOARD_ROWS, BOARD_COLS, BLACK, WHITE
+from renju.rule import RENJU_SIZE, BLACK, WHITE
 from renju.gui import main_frame
 
 MARGIN = 30
 TEXT_SPACING = 8
 GRID_SIZE = 30
 LINE_WIDTH = 1
-assert BOARD_COLS == BOARD_ROWS
 
-LINE_LENGTH = (BOARD_COLS - 1) * GRID_SIZE + LINE_WIDTH
+LINE_LENGTH = (RENJU_SIZE - 1) * GRID_SIZE + LINE_WIDTH
 BOARD_SIZE = LINE_LENGTH + MARGIN * 2
 
 DOT_RADIUS = 3
@@ -32,7 +31,6 @@ class Board(Canvas):
 
         self._draw_board()
         self.bind('<Button-1>', self._on_button1_clicked)
-        self.bind('<Button-3>', self._on_button3_clicked)
 
     @property
     def game(self) -> Game:
@@ -44,25 +42,25 @@ class Board(Canvas):
 
         # horizontal lines
         y = top
-        for row in range(BOARD_ROWS):
+        for row in range(RENJU_SIZE):
             self.create_line(left, y, right, y)  # Line
             self.create_text(left-TEXT_SPACING, y, justify=RIGHT, text=str(15-row))  # Label
             y += GRID_SIZE
 
         # vertical lines
         x = left
-        for col in range(BOARD_COLS):
+        for col in range(RENJU_SIZE):
             self.create_line(x, top, x, bottom)  # Line
             self.create_text(x, bottom + TEXT_SPACING, text=string.ascii_uppercase[col])  # Label
             x += GRID_SIZE
 
         # dots
         dot_rcs = (
-            (BOARD_ROWS // 2, BOARD_COLS // 2),  # center
+            (RENJU_SIZE // 2, RENJU_SIZE // 2),  # center
             (3, 3),
-            (3, BOARD_COLS - 4),
-            (BOARD_ROWS - 4, 3),
-            (BOARD_ROWS - 4, BOARD_COLS - 4)
+            (3, RENJU_SIZE - 4),
+            (RENJU_SIZE - 4, 3),
+            (RENJU_SIZE - 4, RENJU_SIZE - 4)
         )
         for row, col in dot_rcs:
             self._draw_circle(self.rc2xy(row, col), DOT_RADIUS, 'black')
@@ -72,12 +70,10 @@ class Board(Canvas):
         return self.create_oval((x - radius, y - radius, x + radius, y + radius), fill=color)
 
     def _on_button1_clicked(self, event):
-        self._place_stone(BLACK, event.x, event.y)
+        self._place_stone(event.x, event.y)
 
-    def _on_button3_clicked(self, event):
-        self._place_stone(WHITE, event.x, event.y)
-
-    def _place_stone(self, color, x, y):
+    def _place_stone(self, x, y):
+        color = self.frame.game.renju.next_move_color
         row, col = self.xy2rc(x, y)
         if row == -1 or col == -1:
             return
@@ -94,11 +90,12 @@ class Board(Canvas):
         self.game.make_move(color, row, col)
 
     def rc2xy(self, row: int, col: int) -> (int, int):
+        row, col = row-1, col-1  # row, col starts from 1
         return CANVAS_OFFSET + MARGIN + col * GRID_SIZE, CANVAS_OFFSET + MARGIN + row * GRID_SIZE
 
     def xy2rc(self, x: float, y: float) -> (int, int):
-        col = int(round((x - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
-        row = int(round((y - CANVAS_OFFSET - MARGIN) / GRID_SIZE))
+        col = int(round((x - CANVAS_OFFSET - MARGIN) / GRID_SIZE)) + 1
+        row = int(round((y - CANVAS_OFFSET - MARGIN) / GRID_SIZE)) + 1
         x2, y2 = self.rc2xy(row, col)
         if abs(x2-x) > STONE_CLICK_RADIUS or abs(y2-y) > STONE_CLICK_RADIUS:
             return -1, -1

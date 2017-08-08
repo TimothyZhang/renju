@@ -1,8 +1,7 @@
 from typing import Type
 
 from renju.game import Listener, Game
-from renju.rule import Renju, Color, FinishReason, NONE, BLACK, BOARD_COLS, BOARD_ROWS, get_position_name, \
-    get_color_name
+from renju.rule import Renju, Color, FinishReason, NONE, BLACK, BOARD_SIZE, get_position_name, get_color_name
 
 
 class AI:
@@ -61,7 +60,7 @@ class AIHelper(Listener):
     def move(self):
         move = self.ai.get_move()
         if move is None:
-            self.game.resign(self.color)
+            self.game.resign()
         else:
             row, col = move
             self.game.make_move(self.color, row, col)

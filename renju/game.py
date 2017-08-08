@@ -47,12 +47,12 @@ class Game:
         for l in self._listeners:
             l.on_move_made(color, row, col)
 
-        if self._renju.is_finished():
+        if self._renju.has_finished():
             for l in self._listeners:
                 l.on_finished(self._renju.get_winner(), FinishReason.FIVE)
 
-    def resign(self, color):
-        self._renju.resign(color)
+    def resign(self):
+        self._renju.resign()
 
         for l in self._listeners:
             l.on_finished(self._renju.get_winner(), FinishReason.RESIGN)

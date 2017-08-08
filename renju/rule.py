@@ -7,10 +7,10 @@ Color = NewType('Color', int)
 NONE = Color(0)
 BLACK = Color(1)
 WHITE = Color(2)
+WALL = Color(3)
 
-# board size
-BOARD_COLS = 15
-BOARD_ROWS = 15
+RENJU_SIZE = 15
+BOARD_SIZE = RENJU_SIZE + 2
 
 # todo need a better name
 FIVE = 5
@@ -25,6 +25,7 @@ def get_color_name(color: Color):
         return 'white'
 
 
+# todo rename all position to slot
 def get_position_name(row, col):
     return string.ascii_uppercase[col] + str(row+1)
 
@@ -40,43 +41,50 @@ class FinishReason(Enum):
     RESIGN = 2
 
 
+class RenjuState(Enum):
+    PREPARE = 0
+    COMPETING = 1
+    FINISHED = 2
+
+
+# todo support Renju rules.
 class Renju:
     """
-    Holds core rule of Renju, used in both Game and AI.
+    Holds core rule of Renju, used by both Game and AI.
     """
 
     def __init__(self):
-        self._board = [[NONE] * BOARD_ROWS for _ in range(BOARD_COLS)]
+        self._board = []
         """:type: List[List[Color]]"""
 
-        # todo is there an official name?
+        # todo is there an official name? ply?
         self._history = []
+        self._state = RenjuState.PREPARE
         self._winner = NONE
         self._finish_reason = FIVE
-        self._started = False
 
     def start(self):
-        self._board = [[NONE] * BOARD_ROWS for _ in range(BOARD_COLS)]
+        self._board = [[WALL] * BOARD_SIZE for _ in range(BOARD_SIZE)]
         self._history = []
+        self._state = RenjuState.COMPETING
         self._winner = NONE
         self._finish_reason = FIVE
-        self._started = True
 
     def make_move(self, row: int, col: int):
         self._board[row][col] = self.next_move_color
         self._history.append((row, col))
-        self._check_finished()
+        # self._check_finished()
 
     def unmake_move(self):
         row, col = self._history.pop()
         self._board[row][col] = NONE
 
-        self._winner = NONE
+        # self._winner = NONE
+        # self._state = RenjuState.COMPETING
         return row, col
 
-    def resign(self, color: Color):
-        self._winner = opponent_of(color)
-        self._finish_reason = FinishReason.RESIGN
+    def resign(self):
+        self._finish(opponent_of(self.next_move_color),  FinishReason.RESIGN)
 
     @property
     def next_move_color(self) -> Color:
@@ -93,25 +101,22 @@ class Renju:
     def get_winner(self) -> Color:
         return self._winner
 
-    def is_started(self) -> bool:
-        return self._started
-
-    def is_finished(self) -> bool:
-        return self._winner != NONE
-
     def is_playing(self) -> bool:
-        return self.is_started() and not self.is_finished()
+        return self._state == RenjuState.COMPETING
+
+    def has_finished(self) -> bool:
+        return self._state == RenjuState.FINISHED
 
     def _finish(self, color: Color, reason: FinishReason):
         self._winner = color
         self._finish_reason = reason
+        self._state = RenjuState.FINISHED
 
     def _check_finished(self):
         """        
         Checks whether the last move ends the game. 
         """
-        # todo support Renju rules.
-        if self.is_finished():
+        if self.has_finished():
             return
 
         if not self._history:
@@ -123,93 +128,61 @@ class Renju:
 
         # horizontal
         n = 1
-        for c in range(col-1, max(col-FIVE, 0), -1):
-            if board[row][c] != color:
-                break
+        c = col - 1
+        while board[row][c] == color:
             n += 1
-        for c in range(col+1, min(col+FIVE, BOARD_COLS)):
-            if board[row][c] != color:
-                break
+            c -= 1
+        c = col + 1
+        while board[row][c] == color:
             n += 1
+            c += 1
 
         if n >= FIVE:
-            return self._finish(self.last_moved_color, FinishReason.FIVE)
+            return self._finish(color, FinishReason.FIVE)
 
         # vertical
         n = 1
-        for r in range(row-1, max(row-FIVE, 0), -1):
-            if board[r][col] != color:
-                break
+        r = row - 1
+        while board[r][col] == color:
             n += 1
-        for r in range(row+1, min(row+FIVE, BOARD_ROWS)):
-            if board[r][col] != color:
-                break
+            r -= 1
+        r = row + 1
+        while board[r][col] == color:
             n += 1
+            r += 1
+
         if n >= FIVE:
-            return self._finish(self.last_moved_color, FinishReason.FIVE)
+            return self._finish(color, FinishReason.FIVE)
 
         # main diagonal
         n = 1
         r, c = row-1, col-1
-        while r >= 0 and c >= 0 and board[r][c] == color:
+        while board[r][c] == color:
             n += 1
             r -= 1
             c -= 1
-
         r, c = row+1, col+1
-        while r < BOARD_ROWS and c < BOARD_COLS and board[r][c] == color:
+        while board[r][c] == color:
             n += 1
             r += 1
             c += 1
 
         if n >= FIVE:
-            return self._finish(self.last_moved_color, FinishReason.FIVE)
+            return self._finish(color, FinishReason.FIVE)
 
         # anti diagonal
         n = 1
         r, c = row-1, col+1
-        while r >= 0 and c < BOARD_COLS and board[r][c] == color:
+        while board[r][c] == color:
             n += 1
             r -= 1
             c += 1
 
         r, c = row+1, col-1
-        while r < BOARD_ROWS and c >= 0 and board[r][c] == color:
+        while board[r][c] == color:
             n += 1
             r += 1
             c -= 1
 
         if n >= FIVE:
-            return self._finish(self.last_moved_color, FinishReason.FIVE)
-
-#
-# def iterate_rows():
-#     def row_iterator(row_):
-#         for col in range(BOARD_SIZE):
-#             yield row_, col
-#
-#     for row in range(BOARD_SIZE):
-#         yield row_iterator(row)
-#
-#
-# def iterate_cols():
-#     def col_iterator(col_):
-#         for row in range(BOARD_SIZE):
-#             yield row, col_
-#
-#     for col in range(BOARD_SIZE):
-#         yield col_iterator(col)
-#
-#
-# # todo how to name the two diagonals?
-# def iterate_main_diagonal():
-#
-#
-# def iterate_lines():
-#     return itertools.chain(iterate_rows(), iterate_cols())
-#
-#
-# if __name__ == '__main__':
-#     for line in iterate_lines():
-#         for r, c in line:
-#             print(r, c)
+            return self._finish(color, FinishReason.FIVE)

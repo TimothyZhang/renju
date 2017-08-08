@@ -1,10 +1,10 @@
 from renju.ai.base import AI
-from renju.rule import BOARD_ROWS, BOARD_COLS, Color, opponent_of, NONE
+from renju.rule import BOARD_SIZE, Color, opponent_of, NONE
 
 MAX_SCORE = 2**31
 
-TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, 0) for row in range(1, BOARD_ROWS)]
-TOP_RIGHT_POSITIONS = [(0, col) for col in range(BOARD_COLS)] + [(row, BOARD_COLS-1) for row in range(1, BOARD_ROWS)]
+TOP_LEFT_POSITIONS = [(0, col) for col in range(BOARD_SIZE)] + [(row, 0) for row in range(1, BOARD_SIZE)]
+TOP_RIGHT_POSITIONS = [(0, col) for col in range(BOARD_SIZE)] + [(row, BOARD_SIZE-1) for row in range(1, BOARD_SIZE)]
 
 
 # Lines
@@ -36,17 +36,17 @@ def init_lines():
         return
 
     # horizontal
-    for row in range(BOARD_ROWS):
-        LINES.append([(row, col) for col in range(BOARD_COLS)])
+    for row in range(BOARD_SIZE):
+        LINES.append([(row, col) for col in range(BOARD_SIZE)])
 
     # vertical
-    for col in range(BOARD_COLS):
-        LINES.append([(row, col) for row in range(BOARD_ROWS)])
+    for col in range(BOARD_SIZE):
+        LINES.append([(row, col) for row in range(BOARD_SIZE)])
 
     # main diagonal
     for row, col in TOP_LEFT_POSITIONS:
         line = []
-        while row<BOARD_ROWS and col<BOARD_COLS:
+        while row<BOARD_SIZE and col<BOARD_SIZE:
             line.append((row, col))
             row += 1
             col += 1
@@ -55,7 +55,7 @@ def init_lines():
     # main anti diagonal
     for row, col in TOP_RIGHT_POSITIONS:
         line = []
-        while row<BOARD_ROWS and col>=0:
+        while row<BOARD_SIZE and col>=0:
             line.append((row, col))
             row += 1
             col -= 1
@@ -149,5 +149,5 @@ def iter_neighbours(row, col, distance=1) -> (int, int):
                 continue
 
             nr, nc = row + dr, col + dc
-            if 0 <= nr < BOARD_ROWS and 0 <= nc < BOARD_COLS:
+            if 0 <= nr < BOARD_SIZE and 0 <= nc < BOARD_SIZE:
                 yield nr, nc
