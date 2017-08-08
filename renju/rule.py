@@ -73,7 +73,7 @@ class Renju:
     def make_move(self, row: int, col: int):
         self._board[row][col] = self.next_move_color
         self._history.append((row, col))
-        # self._check_finished()
+        self._check_finished()
 
     def unmake_move(self):
         row, col = self._history.pop()

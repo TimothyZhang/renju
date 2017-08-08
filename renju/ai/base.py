@@ -5,28 +5,14 @@ from renju.rule import Renju, Color, FinishReason, NONE, BLACK, BOARD_SIZE, get_
 
 
 class AI:
-    def __init__(self, renju: 'RenjuWrapper', color: Color):
-        self.renju = renju
+    renju_class = Renju
+
+    def __init__(self, color: Color):
         self.color = color
+        self.renju = self.renju_class()
 
     def get_move(self) -> (int, int):
         raise NotImplementedError()
-
-
-class RenjuWrapper(Renju):
-    """
-    Expose some protected members for AI
-    """
-    @property
-    def board(self):
-        return self._board
-
-    def iter_empty_positions(self):
-        board = self.board
-        for row in range(BOARD_SIZE):
-            for col in range(BOARD_SIZE):
-                if board[row][col] == NONE:
-                    yield row, col
 
 
 class AIHelper(Listener):
@@ -34,14 +20,17 @@ class AIHelper(Listener):
         self.game = game
         self.game.add_listener(self)
 
-        self.renju = RenjuWrapper()
         self.ai = None
         """:type: AI"""
         self.color = NONE
 
-    def reset(self, ai_class: Type[AI], color: Color):
-        self.ai = ai_class(self.renju, color)
+    def reset(self, ai: AI, color: Color):
+        self.ai = ai
         self.color = color
+
+    @property
+    def renju(self):
+        return self.ai.renju
 
     def on_finished(self, winner: Color, reason: FinishReason):
         self.game.remove_listener(self)

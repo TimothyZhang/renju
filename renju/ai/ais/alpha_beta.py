@@ -1,32 +1,32 @@
 from renju.ai.ais.max_min import MaxMinAI, MAX_SCORE
+from renju.ai.base import AI
+from renju.rule import Renju, BOARD_SIZE, NONE
 
 
 """
-Alpha Beta Pruning without heuristic search(AI white):
-POS     Searched    Pruned      Pruned %
-H8
-H9      16402       34542       67.8%
-I9
-I8      180788      149034      45.19%
-K10
-K11     250397      756619      75.13%
-K8
-J11     1001215     1909869     65.61%
-
-Alpha Beta Pruning with heuristic search(AI white):
-POS     Searched    Pruned      Pruned %
-H8
-H9      16402       34542       67.8%
-I9
-I8      180788      149034      45.19%
-K10
-K11     250397      756619      75.13%
-K8
-J11     1001215     1909869     65.61%
+ooooo: 1
 """
+class RenjuWrapper(Renju):
+    """
+    Expose some protected members for AI
+    """
+    @property
+    def board(self):
+        return self._board
+
+    def iter_empty_positions(self):
+        board = self.board
+        for row in range(BOARD_SIZE):
+            for col in range(BOARD_SIZE):
+                if board[row][col] == NONE:
+                    yield row, col
+
+    def evaluate(self) -> int:
+        pass
 
 
-class AlphaBetaAI(MaxMinAI):
+class AlphaBetaAI(AI):
+    renju_class = RenjuWrapper
     evaluated = 0
     pruned = 0
 
