@@ -2,7 +2,7 @@ import string
 from tkinter import Canvas, RIGHT
 
 from renju.game import Game
-from renju.rule import RENJU_SIZE, BLACK, WHITE
+from renju.rule import RENJU_SIZE, BLACK
 from renju.gui import main_frame
 
 MARGIN = 30

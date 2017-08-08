@@ -23,8 +23,8 @@ class RenjuWrapper(Renju):
 
     def iter_empty_positions(self):
         board = self.board
-        for row in range(BOARD_ROWS):
-            for col in range(BOARD_COLS):
+        for row in range(BOARD_SIZE):
+            for col in range(BOARD_SIZE):
                 if board[row][col] == NONE:
                     yield row, col
 
